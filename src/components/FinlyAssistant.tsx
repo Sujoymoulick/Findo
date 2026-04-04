@@ -22,54 +22,53 @@ const FinlyAssistant = () => {
   }, []);
 
   useEffect(() => {
-    const handleToolCall = async (event: any) => {
-      const { toolName, parameters } = event.detail;
+    const handleToolCall = (event: any) => {
+      console.log('[AI Tool] Tool call event received:', event.detail);
 
-      if (toolName === 'addTransaction') {
-        try {
+      // In the ElevenLabs widget, we register client-side tools in the :call event
+      event.detail.config.clientTools = {
+        addTransaction: async (parameters: any) => {
           const { amount, category, merchant, paymentMethod } = parameters;
+          console.log('[AI Tool] Executing addTransaction with parameters:', parameters);
           
           if (!amount) {
-            event.detail.reject({ status: 'error', message: 'Amount is required' });
-            return;
+            console.error('[AI Tool] Amount is missing!');
+            return { status: 'error', message: 'Amount is required' };
           }
 
-          await addExpense({
-            amount: Number(amount),
-            category: category || 'Other',
-            merchant: merchant || 'AI Assistant',
-            date: new Date().toISOString().split('T')[0],
-            paymentMethod: paymentMethod || 'UPI',
-            currency: 'INR',
-            aiScanned: false,
-            note: 'Logged via AI Voice Assistant'
-          });
+          try {
+            await addExpense({
+              amount: Number(amount),
+              category: category || 'Other',
+              merchant: merchant || 'AI Assistant',
+              date: new Date().toISOString().split('T')[0],
+              paymentMethod: paymentMethod || 'UPI',
+              currency: 'INR',
+              aiScanned: false,
+              note: 'Logged via AI Voice Assistant'
+            });
 
-          toast.success(`AI Logged: ₹${amount} in ${category || 'Expenses'}`, {
-            icon: '🤖',
-            duration: 5000,
-            style: {
-              borderRadius: '20px',
-              background: '#0f172a',
-              color: '#fff',
-              border: '1px solid rgba(255,255,255,0.1)',
-              padding: '16px',
-              fontWeight: 'bold'
-            }
-          });
+            toast.success(`AI Logged: ₹${amount} in ${category || 'Expenses'}`, {
+              icon: '🤖',
+              duration: 5000,
+              style: {
+                borderRadius: '20px',
+                background: '#0f172a',
+                color: '#fff',
+                border: '1px solid rgba(255,255,255,0.1)',
+                padding: '16px',
+                fontWeight: 'bold'
+              }
+            });
 
-          // Resolve the tool call for the AI agent so it can confirm to the user
-          if (event.detail.resolve) {
-            event.detail.resolve({ status: 'success', message: 'Transaction logged successfully' });
-          }
-        } catch (error: any) {
-          console.error('AI Tool Error:', error);
-          toast.error('AI failed to log transaction');
-          if (event.detail.reject) {
-            event.detail.reject({ status: 'error', message: error.message || 'Failed to log transaction' });
+            return { status: 'success', message: 'Transaction logged successfully' };
+          } catch (error: any) {
+            console.error('[AI Tool Error]:', error);
+            toast.error('AI failed to log transaction');
+            return { status: 'error', message: error.message || 'Failed to log transaction' };
           }
         }
-      }
+      };
     };
 
     const widget = widgetRef.current;
