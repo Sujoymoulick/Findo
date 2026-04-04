@@ -144,6 +144,9 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
       console.error('CRITICAL: Supabase Insert Error:', error);
       throw error;
     }
+
+    // Manually refresh to ensure UI updates immediately
+    await fetchExpenses();
   };
 
   const updateExpense = async (id: string, expense: any) => {
@@ -168,6 +171,9 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
       console.error('CRITICAL: Supabase Update Error:', error);
       throw error;
     }
+
+    // Manually refresh to ensure UI updates immediately
+    await fetchExpenses();
   };
 
   const deleteExpense = async (id: string) => {
