@@ -2,8 +2,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { 
   Utensils, Plane, ShoppingBag, HeartPulse, 
-  Zap, Home, Film, GraduationCap, Box 
+  Zap, Home, Film, GraduationCap, Box,
+  Gamepad, Coffee, Car, Dumbbell, Music, Tv,
+  BookOpen, Briefcase, Camera, Gift
 } from 'lucide-react';
+import { useBudget } from '../context/BudgetContext';
 
 interface Category {
   name: string;
@@ -11,7 +14,32 @@ interface Category {
   color: string;
 }
 
-const CATEGORIES: Category[] = [
+const getIcon = (iconName: string, size = 20) => {
+  const icons: Record<string, any> = {
+    Utensils: <Utensils size={size} />,
+    Plane: <Plane size={size} />,
+    ShoppingBag: <ShoppingBag size={size} />,
+    HeartPulse: <HeartPulse size={size} />,
+    Zap: <Zap size={size} />,
+    Home: <Home size={size} />,
+    Film: <Film size={size} />,
+    GraduationCap: <GraduationCap size={size} />,
+    Box: <Box size={size} />,
+    Gamepad: <Gamepad size={size} />,
+    Coffee: <Coffee size={size} />,
+    Car: <Car size={size} />,
+    Dumbbell: <Dumbbell size={size} />,
+    Music: <Music size={size} />,
+    Tv: <Tv size={size} />,
+    BookOpen: <BookOpen size={size} />,
+    Briefcase: <Briefcase size={size} />,
+    Camera: <Camera size={size} />,
+    Gift: <Gift size={size} />
+  };
+  return icons[iconName] || <Box size={size} />;
+};
+
+const DEFAULT_CATEGORIES: Category[] = [
   { name: 'Food', icon: <Utensils size={20} />, color: '#10B981' },
   { name: 'Travel', icon: <Plane size={20} />, color: '#3B82F6' },
   { name: 'Shopping', icon: <ShoppingBag size={20} />, color: '#EC4899' },
@@ -29,8 +57,22 @@ interface CategoryRadialProps {
 }
 
 export const CategoryRadial: React.FC<CategoryRadialProps> = ({ selectedCategory, onSelect }) => {
+  const { budget } = useBudget();
   const radius = 120;
   const itemRadius = 40;
+
+  // Merge default categories with custom categories from the budget
+  const customCategories = budget?.budget_categories?.map(cat => ({
+    name: cat.name,
+    icon: getIcon(cat.icon),
+    color: cat.color
+  })) || [];
+
+  // Deduplicate: Keep custom categories if they share a name with defaults
+  const allCategories = [
+    ...customCategories,
+    ...DEFAULT_CATEGORIES.filter(def => !customCategories.some(cust => cust.name.toLowerCase() === def.name.toLowerCase()))
+  ].slice(0, 10); // Keep it manageable (max 10)
 
   return (
     <div className="relative w-[300px] h-[300px] flex items-center justify-center">
@@ -40,8 +82,8 @@ export const CategoryRadial: React.FC<CategoryRadialProps> = ({ selectedCategory
       </div>
 
       {/* Radial Items */}
-      {CATEGORIES.map((cat, index) => {
-        const angle = (index * 360) / CATEGORIES.length;
+      {allCategories.map((cat, index) => {
+        const angle = (index * 360) / allCategories.length;
         const radian = (angle * Math.PI) / 180;
         const x = Math.cos(radian) * radius;
         const y = Math.sin(radian) * radius;
