@@ -197,8 +197,9 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
         currency: newBudget.currency,
         payment_method: newBudget.paymentMethod, // Map to snake_case
         categories: newBudget.categories,
-        user_id: user.id
-      });
+        user_id: user.id,
+        month: new Date().toISOString().slice(0, 7) // Ensure month is passed for unique constraint
+      }, { onConflict: 'user_id, month' });
 
     if (error) {
       console.error('CRITICAL: Supabase Budget Error:', error);

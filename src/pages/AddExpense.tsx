@@ -105,24 +105,26 @@ export default function AddExpense() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{id ? 'Edit Expense' : 'Add Expense'}</h1>
-        <div className="flex space-x-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl shadow-inner mb-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-6 mb-4">
+        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-widest uppercase">
+          {id ? 'Edit Expense' : 'Add Expense'}
+        </h1>
+        <div className="flex w-full sm:w-auto p-1 bg-slate-100/50 dark:bg-slate-800/50 backdrop-blur-md rounded-2xl shadow-inner border border-white/10">
           <button
             onClick={() => setMode('quick')}
-            className={`px-6 py-2 rounded-lg text-sm font-black transition-all ${mode === 'quick' ? 'bg-white dark:bg-gray-700 shadow-lg text-brand-primary' : 'text-gray-500'}`}
+            className={`flex-1 sm:px-8 py-3 rounded-xl text-xs font-black tracking-widest transition-all duration-300 ${mode === 'quick' ? 'bg-white dark:bg-slate-700 shadow-xl text-brand-primary scale-[1.02]' : 'text-slate-400 dark:text-slate-500'}`}
           >
             QUICK
           </button>
           <button
             onClick={() => setMode('manual')}
-            className={`px-6 py-2 rounded-lg text-sm font-black transition-all ${mode === 'manual' ? 'bg-white dark:bg-gray-700 shadow-lg text-brand-primary' : 'text-gray-500'}`}
+            className={`flex-1 sm:px-8 py-3 rounded-xl text-xs font-black tracking-widest transition-all duration-300 ${mode === 'manual' ? 'bg-white dark:bg-slate-700 shadow-xl text-brand-primary scale-[1.02]' : 'text-slate-400 dark:text-slate-500'}`}
           >
             MANUAL
           </button>
           <button
             onClick={() => setMode('scan')}
-            className={`px-6 py-2 rounded-lg text-sm font-black transition-all ${mode === 'scan' ? 'bg-white dark:bg-gray-700 shadow-lg text-brand-primary' : 'text-gray-500'}`}
+            className={`flex-1 sm:px-8 py-3 rounded-xl text-xs font-black tracking-widest transition-all duration-300 ${mode === 'scan' ? 'bg-white dark:bg-slate-700 shadow-xl text-brand-primary scale-[1.02]' : 'text-slate-400 dark:text-slate-500'}`}
           >
             SCAN
           </button>

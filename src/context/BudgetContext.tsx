@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase';
 
 interface BudgetCategory {
   id: string;
-  budget_plan_id: string;
+  budget_id: string;
   name: string;
   limit_amount: number;
   spent: number;
@@ -48,7 +48,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [budget, setBudget] = useState<Budget | null>(null);
   const [insights, setInsights] = useState<BudgetInsight | null>(null);
   const [loading, setLoading] = useState(false);
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const { expenses } = useExpense();
 
   const fetchBudget = async (month: string) => {
@@ -56,8 +56,9 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('budget_plans')
+        .from('budgets')
         .select('*, budget_categories(*)')
+        .eq('user_id', user?.id)
         .eq('month', month)
         .single();
 
@@ -71,11 +72,11 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const createBudget = async (month: string, total_budget: number) => {
-    if (!token) return;
+    if (!token || !user) return;
     try {
       const { data, error } = await supabase
-        .from('budget_plans')
-        .upsert({ month, total_budget }, { onConflict: 'user_id, month' })
+        .from('budgets')
+        .upsert({ month, total_budget, user_id: user?.id }, { onConflict: 'user_id, month' })
         .select()
         .single();
 
@@ -92,7 +93,7 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       const { data, error } = await supabase
         .from('budget_categories')
-        .insert([{ ...category, budget_plan_id: budget.id }])
+        .insert([{ ...category, budget_id: budget.id }])
         .select()
         .single();
 
