@@ -73,10 +73,10 @@ export default function Transactions() {
             </button>
             <button
               onClick={() => generatePDFReport(filteredExpenses, user, budget, { start: startDate, end: endDate })}
-              className="flex items-center gap-2 px-6 py-2.5 bg-brand-primary text-white rounded-xl font-bold hover:bg-emerald-600 shadow-lg shadow-brand-primary/20 transition-all hover:scale-105 active:scale-95"
+              className="flex items-center gap-2 px-4 sm:px-6 py-2.5 bg-brand-primary text-white rounded-xl font-bold hover:bg-emerald-600 shadow-lg shadow-brand-primary/20 transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
             >
               <Download size={18} />
-              <span>Download PDF</span>
+              <span className="hidden sm:inline">Download PDF</span>
             </button>
           </div>
         </div>
