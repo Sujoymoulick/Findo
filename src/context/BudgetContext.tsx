@@ -80,10 +80,13 @@ export const BudgetProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('SUPABASE CREATE BUDGET ERROR:', error);
+        throw error;
+      }
       setBudget(data);
-    } catch (err) {
-      console.error('Create budget error:', err);
+    } catch (err: any) {
+      console.error('Create budget error exception:', err);
       throw err;
     }
   };

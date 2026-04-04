@@ -38,8 +38,9 @@ router.get('/:month', authenticateToken, async (req: any, res: any) => {
     try {
         const { month } = req.params;
         const { data, error } = await req.sb
-            .from('budget_plans')
+            .from('budgets')
             .select('*, budget_categories(*)')
+            .eq('user_id', req.user.id)
             .eq('month', month)
             .single();
 
@@ -55,11 +56,15 @@ router.post('/', authenticateToken, async (req: any, res: any) => {
     try {
         const { month, total_budget } = req.body;
         console.log('--- CREATE BUDGET (AUTH CONTEXT) ---');
-        console.log('Month:', month, 'Budget:', total_budget);
+        console.log('User:', req.user.id, 'Month:', month, 'Budget:', total_budget);
 
         const { data, error } = await req.sb
-            .from('budget_plans')
-            .upsert({ month, total_budget }, { onConflict: 'user_id, month' })
+            .from('budgets')
+            .upsert({ 
+                month, 
+                total_budget, 
+                user_id: req.user.id 
+            }, { onConflict: 'user_id, month' })
             .select()
             .single();
 
@@ -77,10 +82,10 @@ router.post('/', authenticateToken, async (req: any, res: any) => {
 // POST /api/budget/category → add new category
 router.post('/category', authenticateToken, async (req: any, res: any) => {
     try {
-        const { budget_plan_id, name, limit_amount, icon, color } = req.body;
+        const { budget_id, name, limit_amount, icon, color } = req.body;
         const { data, error } = await req.sb
             .from('budget_categories')
-            .insert([{ budget_plan_id, name, limit_amount, icon, color }])
+            .insert([{ budget_id, name, limit_amount, icon, color }])
             .select()
             .single();
 
@@ -145,7 +150,8 @@ router.post('/:month/insights', authenticateToken, async (req: any, res: any) =>
                     suggestions: insights.suggestions,
                     next_month_budget: insights.nextMonthBudget,
                     savings_score: insights.savingsScore,
-                    budget_plan_id: budgetData.id
+                    budget_id: budgetData.id,
+                    user_id: req.user.id
                 }, { onConflict: 'user_id, month' });
         } catch (_) { /* silently ignore persistence errors */ }
 
