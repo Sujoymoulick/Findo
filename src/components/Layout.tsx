@@ -13,6 +13,13 @@ const navItems = [
   { to: '/dashboard/settings', icon: <Settings size={22} />, label: 'Settings' },
 ];
 
+const mobileNavItems = [
+  { to: '/dashboard', icon: <LayoutDashboard size={22} />, label: 'Home' },
+  { to: '/dashboard/budget', icon: <Wallet size={22} />, label: 'Budget' },
+  { to: '/dashboard/transactions', icon: <List size={22} />, label: 'History' },
+  { to: '/dashboard/reports', icon: <BarChart2 size={22} />, label: 'Report' },
+];
+
 const Sidebar = () => {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
@@ -102,35 +109,68 @@ export const Layout = () => {
     <div className="flex min-h-screen bg-transparent transition-colors duration-300">
       <AnimatedBackground />
       <Sidebar />
-      <main className="flex-1 md:ml-64 p-4 md:p-8 pb-24 md:pb-8 relative w-full overflow-x-hidden">
+      
+      {/* Mobile Top Header */}
+      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-white/10 dark:border-slate-800/50 z-40 flex items-center justify-between px-6 transition-colors duration-300">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center shadow-lg shadow-brand-primary/20">
+            <BarChart2 className="text-white w-5 h-5" />
+          </div>
+          <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Findo</span>
+        </div>
+        <button 
+          onClick={() => navigate('/dashboard/settings')}
+          className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500 dark:text-slate-400 hover:text-brand-primary transition-all active:scale-90"
+        >
+          <Settings size={20} />
+        </button>
+      </div>
+
+      <main className="flex-1 md:ml-64 p-4 md:p-8 pt-20 md:pt-8 pb-28 md:pb-8 relative w-full overflow-x-hidden">
         <Outlet />
       </main>
       
       {/* Mobile Bottom Navigation - Floating Style */}
       <div className="md:hidden fixed bottom-6 left-6 right-6 z-50">
-        <nav className="bg-slate-900/80 dark:bg-slate-800/80 backdrop-blur-xl border border-white/10 flex justify-around items-center p-3 rounded-[2rem] shadow-2xl transition-colors duration-300">
-          {navItems.map((item) => (
+        <nav className="bg-slate-900/90 dark:bg-slate-800/90 backdrop-blur-xl border border-white/10 flex justify-between items-center px-4 py-2 rounded-[2rem] shadow-2xl transition-colors duration-300">
+          {mobileNavItems.slice(0, 2).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.to === '/dashboard'}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center p-2 rounded-2xl transition-all min-w-[64px] ${
+                `flex flex-col items-center justify-center p-2 rounded-2xl transition-all min-w-[50px] ${
                   isActive ? 'text-brand-primary scale-110' : 'text-slate-400 hover:text-white'
                 }`
               }
             >
-              {item.icon}
+              <div className="transition-transform group-active:scale-95">{item.icon}</div>
               <span className="text-[10px] mt-1 font-bold tracking-tight">{item.label}</span>
             </NavLink>
           ))}
+          
           <button
             onClick={() => navigate('/dashboard/add')}
-            className="flex flex-col items-center justify-center p-2 rounded-2xl transition-all min-w-[64px] text-brand-primary"
+            className="flex items-center justify-center -translate-y-8 w-16 h-16 bg-brand-primary text-white rounded-full shadow-xl shadow-brand-primary/40 border-4 border-slate-900 dark:border-slate-800 active:scale-90 transition-all group"
           >
-            <PlusCircle size={24} />
-            <span className="text-[10px] mt-1 font-bold tracking-tight">Add</span>
+            <PlusCircle size={32} className="group-hover:rotate-90 transition-transform duration-300" />
           </button>
+          
+          {mobileNavItems.slice(2).map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/dashboard'}
+              className={({ isActive }) =>
+                `flex flex-col items-center justify-center p-2 rounded-2xl transition-all min-w-[50px] ${
+                  isActive ? 'text-brand-primary scale-110' : 'text-slate-400 hover:text-white'
+                }`
+              }
+            >
+              <div className="transition-transform group-active:scale-95">{item.icon}</div>
+              <span className="text-[10px] mt-1 font-bold tracking-tight">{item.label}</span>
+            </NavLink>
+          ))}
         </nav>
       </div>
       

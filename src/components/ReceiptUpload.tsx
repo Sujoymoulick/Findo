@@ -14,6 +14,7 @@ interface ReceiptUploadProps {
 
 export default function ReceiptUpload({ onUploadSuccess, onDelete, currentImage, publicId }: ReceiptUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentImage || null);
   const { token } = useAuth();
 
@@ -99,7 +100,26 @@ export default function ReceiptUpload({ onUploadSuccess, onDelete, currentImage,
   };
 
   return (
-    <div className="relative group">
+    <div 
+      className="relative group"
+      onDragOver={(e) => {
+        e.preventDefault();
+        if (!isUploading) setIsDragging(true);
+      }}
+      onDragLeave={() => setIsDragging(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setIsDragging(false);
+        if (isUploading) return;
+        const file = e.dataTransfer.files?.[0];
+        if (file && file.type.startsWith('image/')) {
+          const fakeEvent = { target: { files: [file] } } as any;
+          handleFileChange(fakeEvent);
+        } else if (file) {
+          toast.error('Please upload an image file');
+        }
+      }}
+    >
       <input
         type="file"
         accept="image/*"
@@ -111,7 +131,9 @@ export default function ReceiptUpload({ onUploadSuccess, onDelete, currentImage,
       <div className={`p-8 rounded-3xl border-2 border-dashed transition-all duration-500 flex flex-col items-center justify-center gap-4 ${
         preview 
         ? 'border-emerald-500/50 bg-emerald-500/5' 
-        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 group-hover:border-brand-primary group-hover:bg-brand-primary/5'
+        : isDragging
+          ? 'border-brand-primary bg-brand-primary/10 scale-[1.02] shadow-2xl shadow-brand-primary/20'
+          : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 group-hover:border-brand-primary group-hover:bg-brand-primary/5'
       }`}>
         {preview ? (
           <div className="relative w-full h-48 rounded-2xl overflow-hidden shadow-2xl border border-emerald-500/20">
@@ -142,12 +164,20 @@ export default function ReceiptUpload({ onUploadSuccess, onDelete, currentImage,
           </div>
         ) : (
           <>
-            <div className="w-20 h-20 rounded-3xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-brand-primary transition-all group-hover:scale-110 group-hover:rotate-6 duration-500 shadow-xl shadow-emerald-500/10">
-              <Camera size={38} />
+            <div className={`w-20 h-20 rounded-3xl flex items-center justify-center text-brand-primary transition-all duration-500 shadow-xl ${
+              isDragging 
+              ? 'bg-brand-primary text-white scale-110 rotate-12' 
+              : 'bg-emerald-100 dark:bg-emerald-900/30 group-hover:scale-110 group-hover:rotate-6 shadow-emerald-500/10'
+            }`}>
+              {isDragging ? <Upload size={38} /> : <Camera size={38} />}
             </div>
             <div className="text-center">
-              <p className="text-xl font-black text-slate-900 dark:text-white mb-1">Snap your Receipt</p>
-              <p className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">AI will extract all details</p>
+              <p className="text-xl font-black text-slate-900 dark:text-white mb-1">
+                {isDragging ? 'Drop it here!' : 'Snap your Receipt'}
+              </p>
+              <p className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                {isDragging ? 'Ready to analyze' : 'Click to upload or Drag & Drop'}
+              </p>
             </div>
           </>
         )}
