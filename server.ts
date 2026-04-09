@@ -64,40 +64,75 @@ const uploadToCloudinary = (buffer: Buffer, folder: string, options: any = {}): 
   });
 };
 
-// Cloudinary Receipt Upload with OCR and Tagging
+// Cloudinary Receipt Upload with Gemini 2.0 AI Extraction
 app.post('/api/upload/receipt', authenticateToken, upload.single('receipt'), async (req: any, res: any) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
 
-    const result = await uploadToCloudinary(req.file.buffer, 'findo/receipts', {
-      ocr: 'adv_ocr',
-      categorization: 'google_tagging',
-      auto_tagging: 0.6
+    // 1. Upload to Cloudinary for permanent hosting
+    const cloudinaryResult = await uploadToCloudinary(req.file.buffer, 'findo/receipts', {
+      resource_type: 'auto'
     });
 
-    // Extract OCR data if available
-    const ocrData = result.info?.ocr?.adv_ocr?.data?.[0]?.textAnnotations?.[0]?.description || '';
-    const tags = result.tags || [];
+    // 2. Extract data with Gemini 2.0 Flash
+    const base64Image = req.file.buffer.toString('base64');
+    const mimeType = req.file.mimetype;
+
+    if (!process.env.VITE_GEMINI_API_KEY) {
+      console.warn('Gemini API key missing, falling back to basic Cloudinary result');
+      return res.json({
+        secure_url: cloudinaryResult.secure_url,
+        public_id: cloudinaryResult.public_id,
+        amount: '',
+        ocr_text: '',
+        tags: []
+      });
+    }
+
+    const ai = new GoogleGenAI({ 
+      apiKey: process.env.VITE_GEMINI_API_KEY,
+      httpOptions: { apiVersion: 'v1' }
+    });
+
+    const prompt = 'Extract the total final amount from this receipt image. Return ONLY a JSON object with this field: amount (number). If multiple amounts are present, pick the final "Total".';
+    
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { inlineData: { data: base64Image, mimeType } },
+            { text: prompt }
+          ]
+        }
+      ],
+      config: {
+        responseMimeType: 'application/json'
+      }
+    });
+
+    const text = response.text || '{}';
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : { amount: '' };
 
     res.json({
-      secure_url: result.secure_url,
-      public_id: result.public_id,
-      ocr_text: ocrData,
-      tags: tags
+      secure_url: cloudinaryResult.secure_url,
+      public_id: cloudinaryResult.public_id,
+      amount: parsed.amount || '',
+      ocr_text: text, // For debugging if needed
+      tags: []
     });
   } catch (err: any) {
-    console.error('Cloudinary upload error details:', {
-      message: err.message,
-      http_code: err.http_code,
-      name: err.name,
-      error_info: err.error?.message || err.message
-    });
-    res.status(err.http_code || 500).json({ 
-      error: 'Cloudinary Error: ' + (err.message || 'Failed to scan receipt'),
-      details: err.error?.message
+    console.error('AI Scan Error:', err);
+    res.status(500).json({ 
+      error: 'AI Scan Failed',
+      details: err.message 
     });
   }
 });
+
+
 
 // Cloudinary Avatar Upload with Transformations
 app.post('/api/upload/avatar', authenticateToken, upload.single('avatar'), async (req: any, res: any) => {

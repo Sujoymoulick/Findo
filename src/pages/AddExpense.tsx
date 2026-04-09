@@ -60,13 +60,13 @@ export default function AddExpense() {
   const handleUploadSuccess = (data: any) => {
     setFormData(prev => ({
       ...prev,
-      ...data,
-      amount: data.amount || prev.amount,
+      amount: data.amount ? data.amount.toString() : prev.amount,
+      receiptImage: data.receiptImage || prev.receiptImage,
+      receiptPublicId: data.receiptPublicId || prev.receiptPublicId,
       aiScanned: true
     }));
-    // Stay in scan mode to show results, or switch if preferred. 
-    // The user wants it "in scan recept option".
   };
+
 
   const handleReceiptDelete = () => {
     setFormData(prev => ({
@@ -152,26 +152,46 @@ export default function AddExpense() {
                 
                 <div className="space-y-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Extracted Amount</label>
+                    <label className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest pl-2">Extracted Amount (₹)</label>
                     <input 
                       type="number"
                       value={formData.amount}
                       onChange={e => setFormData({...formData, amount: e.target.value})}
-                      className="w-full bg-white dark:bg-gray-800 border-none rounded-xl p-3 font-bold text-gray-900 dark:text-white text-lg focus:ring-2 focus:ring-emerald-500 shadow-inner"
+                      className="w-full bg-white dark:bg-gray-800 border-none rounded-xl p-4 font-black text-gray-900 dark:text-white text-2xl focus:ring-4 focus:ring-emerald-500 shadow-inner"
+                    />
+                  </div>
+
+                  <div className="flex flex-col items-center gap-4 py-2">
+                    <label className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Select Category</label>
+                    <CategoryRadial 
+                      selectedCategory={formData.category}
+                      onSelect={(cat) => setFormData({...formData, category: cat})}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest pl-2">Payment Method</label>
+                    <select
+                      value={formData.paymentMethod}
+                      onChange={e => setFormData({...formData, paymentMethod: e.target.value})}
+                      className="w-full bg-white dark:bg-gray-800 border-none rounded-xl p-4 font-bold text-gray-900 dark:text-white text-sm focus:ring-4 focus:ring-emerald-500 shadow-inner"
+                    >
+                      {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest pl-2">Note / Description</label>
+                    <textarea 
+                      value={formData.description}
+                      onChange={e => setFormData({...formData, description: e.target.value})}
+                      rows={2}
+                      placeholder="Add a note about this expense..."
+                      className="w-full bg-white dark:bg-gray-800 border-none rounded-xl p-4 font-medium text-gray-900 dark:text-white text-sm focus:ring-4 focus:ring-emerald-500 shadow-inner"
                     />
                   </div>
                 </div>
-                
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Description</label>
-                  <textarea 
-                    value={formData.description}
-                    onChange={e => setFormData({...formData, description: e.target.value})}
-                    rows={2}
-                    placeholder="Small description box..."
-                    className="w-full bg-white dark:bg-gray-800 border-none rounded-xl p-3 font-medium text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
+
 
                 <div className="pt-2 flex gap-3">
                   <button 
@@ -190,11 +210,12 @@ export default function AddExpense() {
               </div>
             ) : (
               <>
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Cloudinary AI Scan</h2>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
-                  Snap a photo or upload a receipt. Cloudinary's AI will automatically extract amount, merchant, and categorize it for you.
+                <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-widest">AI RECEIPT SCAN</h2>
+                <p className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest">
+                  Snap a photo or upload a receipt. Gemini AI will automatically extract the final amount for you.
                 </p>
               </>
+
             )}
           </div>
         </div>

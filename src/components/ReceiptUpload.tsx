@@ -3,7 +3,7 @@ import { Camera, Upload, CheckCircle, Loader2, Trash2, X } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
-import { parseOCRReceipt, mapTagsToCategory } from '../lib/receiptUtils';
+
 
 interface ReceiptUploadProps {
   onUploadSuccess: (data: any) => void;
@@ -42,22 +42,18 @@ export default function ReceiptUpload({ onUploadSuccess, onDelete, currentImage,
         }
       });
 
-      const { secure_url, public_id, ocr_text, tags } = response.data;
+      const { secure_url, public_id, amount } = response.data;
       
-      // Parse OCR data
-      const parsedData = parseOCRReceipt(ocr_text);
-      const category = mapTagsToCategory(tags);
-
       onUploadSuccess({
         receiptImage: secure_url,
         receiptPublicId: public_id,
-        ...parsedData,
-        category: category,
+        amount: amount,
         aiScanned: true
       });
 
       setPreview(secure_url);
     } catch (err) {
+
       console.error('Upload Error:', err);
       toast.error('Failed to upload receipt. Please try again.');
     } finally {
