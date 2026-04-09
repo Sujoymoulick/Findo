@@ -4,9 +4,11 @@ import { GoogleGenAI, Type } from '@google/genai';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
-import cloudinary from './cloudinary.config';
 
 dotenv.config();
+
+import cloudinary from './cloudinary.config';
+
 
 import budgetRoutes from './src/routes/budget';
 
@@ -237,9 +239,10 @@ app.post('/api/expenses/scan', authenticateToken, upload.single('receipt'), asyn
     const receiptImage = `data:${mimeType};base64,${base64Image}`;
 
     res.json({ ...extractedData, receiptImage });
-  } catch (err) {
-    console.error('Scan error:', err);
-    res.status(500).json({ error: 'Failed to scan receipt' });
+  } catch (err: any) {
+    console.error('Upload Error:', err);
+    const errorMessage = err.response?.data?.error || err.response?.data?.details || err.message;
+    res.status(500).json({ error: `Scan Failed: ${errorMessage}` });
   }
 });
 

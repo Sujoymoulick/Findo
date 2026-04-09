@@ -52,11 +52,13 @@ export default function ReceiptUpload({ onUploadSuccess, onDelete, currentImage,
       });
 
       setPreview(secure_url);
-    } catch (err) {
-
+    } catch (err: any) {
       console.error('Upload Error:', err);
-      toast.error('Failed to upload receipt. Please try again.');
+      const serverError = err.response?.data?.error || err.response?.data?.details;
+      const displayMsg = serverError ? `Scan Failed: ${serverError}` : 'Failed to upload receipt. Please try again.';
+      toast.error(displayMsg);
     } finally {
+
       setIsUploading(false);
     }
   };
