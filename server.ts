@@ -71,68 +71,72 @@ app.post('/api/upload/receipt', authenticateToken, upload.single('receipt'), asy
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
 
-    // 1. Upload to Cloudinary for permanent hosting
-    const cloudinaryResult = await uploadToCloudinary(req.file.buffer, 'findo/receipts', {
-      resource_type: 'auto'
+// Cloudinary Receipt Upload with Google OCR AI Extraction
+app.post('/api/upload/receipt', authenticateToken, upload.single('receipt'), async (req: any, res: any) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
+
+    // 1. Upload to Cloudinary with Google OCR enabled
+    console.log('Uploading to Cloudinary with adv_ocr...');
+    const result = await uploadToCloudinary(req.file.buffer, 'findo/receipts', {
+      ocr: 'adv_ocr' // This triggers Google Vision OCR
     });
 
-    // 2. Extract data with Gemini 2.0 Flash
-    const base64Image = req.file.buffer.toString('base64');
-    const mimeType = req.file.mimetype;
+    // 2. Extract OCR text
+    const ocrText = result.info?.ocr?.adv_ocr?.data?.[0]?.textAnnotations?.[0]?.description || '';
+    console.log('OCR Text Extracted (chars):', ocrText.length);
 
-    if (!process.env.VITE_GEMINI_API_KEY) {
-      console.warn('Gemini API key missing, falling back to basic Cloudinary result');
-      return res.json({
-        secure_url: cloudinaryResult.secure_url,
-        public_id: cloudinaryResult.public_id,
-        amount: '',
-        ocr_text: '',
-        tags: []
-      });
+    // 3. Simple Server-side Amount Extraction Logic
+    let amount = '';
+    if (ocrText) {
+      const lines = ocrText.split('\n');
+      const amountRegex = /(?:₹|rs\.?|inr)?\s*([0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?)/i;
+      
+      // Look for keywords like Total, Paid, etc.
+      for (const line of lines) {
+        const lowerLine = line.toLowerCase();
+        if (lowerLine.includes('total') || lowerLine.includes('paid') || lowerLine.includes('net') || lowerLine.includes('amount') || lowerLine.includes('₹')) {
+          const match = line.match(amountRegex);
+          if (match && match[1]) {
+            const val = match[1].replace(/,/g, '');
+            if (!amount || Number(val) > Number(amount)) {
+              amount = val;
+            }
+          }
+        }
+      }
+
+      // Fallback: Max number that looks like an amount
+      if (!amount) {
+        const allAmounts = ocrText.match(/(?:₹|rs\.?|inr)?\s*([0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?)/gi);
+        if (allAmounts) {
+          const numbers = allAmounts.map(a => {
+            const m = a.match(/([0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?)/);
+            return m ? Number(m[0].replace(/,/g, '')) : 0;
+          });
+          const maxAmount = Math.max(...numbers);
+          if (maxAmount > 0) amount = maxAmount.toString();
+        }
+      }
     }
 
-    const ai = new GoogleGenAI({ 
-      apiKey: process.env.VITE_GEMINI_API_KEY,
-      httpOptions: { apiVersion: 'v1' }
-    });
-
-    const prompt = 'Extract the total final amount from this receipt image. Return ONLY a JSON object with this field: amount (number). If multiple amounts are present, pick the final "Total".';
-    
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { inlineData: { data: base64Image, mimeType } },
-            { text: prompt }
-          ]
-        }
-      ],
-      config: {
-        responseMimeType: 'application/json'
-      }
-    });
-
-    const text = response.text || '{}';
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : { amount: '' };
-
     res.json({
-      secure_url: cloudinaryResult.secure_url,
-      public_id: cloudinaryResult.public_id,
-      amount: parsed.amount || '',
-      ocr_text: text, // For debugging if needed
-      tags: []
+      secure_url: result.secure_url,
+      public_id: result.public_id,
+      amount: amount || '',
+      ocr_text: ocrText.substring(0, 500), // Return snippet for verification
+      tags: result.tags || []
     });
   } catch (err: any) {
-    console.error('AI Scan Error:', err);
+    console.error('Cloudinary AI Scan Error:', err);
     res.status(500).json({ 
-      error: 'AI Scan Failed',
-      details: err.message 
+      error: 'Cloudinary AI Scan Failed',
+      details: err.message,
+      code: err.http_code
     });
   }
 });
+
 
 
 
