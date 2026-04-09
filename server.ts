@@ -69,8 +69,26 @@ const uploadToCloudinary = (buffer: Buffer, folder: string, options: any = {}): 
 // Cloudinary Receipt Upload with Google OCR AI Extraction
 app.post('/api/upload/receipt', authenticateToken, upload.single('receipt'), async (req: any, res: any) => {
   try {
+    // Basic Request Validation
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
 
+    // Environment Validation (Prevent Vercel Generic 500s)
+    const requiredEnv = [
+      'CLOUDINARY_CLOUD_NAME', 
+      'CLOUDINARY_API_KEY', 
+      'CLOUDINARY_API_SECRET',
+      'VITE_SUPABASE_URL',
+      'VITE_SUPABASE_ANON_KEY'
+    ];
+    
+    const missing = requiredEnv.filter(k => !process.env[k]);
+    if (missing.length > 0) {
+      console.error('Missing Environment Variables:', missing);
+      return res.status(500).json({ 
+        error: 'Server Configuration Error', 
+        details: `Missing keys: ${missing.join(', ')}. Please add them to Vercel Dashboard.` 
+      });
+    }
 
     // 1. Upload to Cloudinary with Google OCR enabled
     console.log('Uploading to Cloudinary with adv_ocr...');
