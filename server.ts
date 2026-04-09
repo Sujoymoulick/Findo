@@ -66,15 +66,11 @@ const uploadToCloudinary = (buffer: Buffer, folder: string, options: any = {}): 
   });
 };
 
-// Cloudinary Receipt Upload with Gemini 2.0 AI Extraction
-app.post('/api/upload/receipt', authenticateToken, upload.single('receipt'), async (req: any, res: any) => {
-  try {
-    if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
-
 // Cloudinary Receipt Upload with Google OCR AI Extraction
 app.post('/api/upload/receipt', authenticateToken, upload.single('receipt'), async (req: any, res: any) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
+
 
     // 1. Upload to Cloudinary with Google OCR enabled
     console.log('Uploading to Cloudinary with adv_ocr...');
