@@ -15,7 +15,7 @@ export default function ForgotPassword() {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'http://localhost:3000/reset-password',
+        redirectTo: `${import.meta.env.VITE_SITE_URL || 'http://localhost:5173'}/reset-password`,
       });
 
       if (error) throw error;

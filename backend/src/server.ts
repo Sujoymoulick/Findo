@@ -1,10 +1,11 @@
 import express from 'express';
+import cors from 'cors';
 import multer from 'multer';
-import { GoogleGenAI, Type } from '@google/genai';
+import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
-import cloudinary from './cloudinary.config';
-import budgetRoutes from './routes/budget';
+import cloudinary from './cloudinary.config.js';
+import budgetRoutes from './routes/budget.js';
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 const app = express();
 
 // --- Global Middleware ---
+app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
@@ -86,9 +88,7 @@ app.post('/api/upload/receipt', authenticateToken, upload.single('receipt'), asy
     const base64Image = req.file.buffer.toString('base64');
     const mimeType = req.file.mimetype;
 
-    const ai = new GoogleGenAI({ 
-      apiKey: process.env.VITE_GEMINI_API_KEY || ''
-    });
+    const ai = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || '');
 
     const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
     const response = await model.generateContent({
@@ -186,43 +186,36 @@ app.post('/api/expenses/scan', authenticateToken, upload.single('receipt'), asyn
       return res.status(503).json({ error: 'AI features are not configured.' });
     }
 
-    const ai = new GoogleGenAI({ 
-      apiKey: process.env.VITE_GEMINI_API_KEY,
-      httpOptions: { apiVersion: 'v1' }
-    });
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { inlineData: { data: base64Image, mimeType } },
-            { text: 'Extract receipt details into a JSON object. Fields: amount (number), currency (string), merchant (string), date (YYYY-MM-DD), category (enum: Food, Travel, Shopping, Health, Utilities, Rent, Entertainment, Education, Other), items (array of strings), paymentMethod (enum: UPI, Cash, Card, NetBanking), transactionId (string), confidence (enum: high, medium, low), note (string).' }
-          ]
-        }
-      ],
-      config: {
+    const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || '');
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-1.5-flash',
+      generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
-          type: Type.OBJECT,
+          type: SchemaType.OBJECT,
           properties: {
-            amount: { type: Type.NUMBER },
-            currency: { type: Type.STRING },
-            merchant: { type: Type.STRING },
-            date: { type: Type.STRING },
-            category: { type: Type.STRING },
-            items: { type: Type.ARRAY, items: { type: Type.STRING } },
-            paymentMethod: { type: Type.STRING },
-            transactionId: { type: Type.STRING },
-            confidence: { type: Type.STRING },
-            note: { type: Type.STRING }
+            amount: { type: SchemaType.NUMBER },
+            currency: { type: SchemaType.STRING },
+            merchant: { type: SchemaType.STRING },
+            date: { type: SchemaType.STRING },
+            category: { type: SchemaType.STRING },
+            items: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+            paymentMethod: { type: SchemaType.STRING },
+            transactionId: { type: SchemaType.STRING },
+            confidence: { type: SchemaType.STRING },
+            note: { type: SchemaType.STRING }
           },
           required: ['amount', 'currency', 'merchant', 'date', 'category', 'items', 'paymentMethod', 'confidence']
         }
       }
     });
 
-    const extractedData = JSON.parse(response.text || '{}');
+    const result = await model.generateContent([
+      { inlineData: { data: base64Image, mimeType } },
+      'Extract receipt details into a JSON object.'
+    ]);
+
+    const extractedData = JSON.parse(result.response.text() || '{}');
     const receiptImage = `data:${mimeType};base64,${base64Image}`;
 
     res.json({ ...extractedData, receiptImage });
@@ -239,7 +232,8 @@ app.post('/api/ai/insights', authenticateToken, async (req: any, res: any) => {
       return res.status(503).json({ error: 'AI features are not configured.' });
     }
 
-    const ai = new GoogleGenAI({ apiKey: process.env.VITE_GEMINI_API_KEY });
+    const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || '');
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const prompt = `You are a financial AI. Analyze these expenses and budget for an Indian user.
 Return ONLY a valid JSON object (no markdown, no explanation) with exactly these fields:
 - topOverspentCategory: string
@@ -251,12 +245,8 @@ Return ONLY a valid JSON object (no markdown, no explanation) with exactly these
 Expenses: ${JSON.stringify(expenses)}
 Budget: ${JSON.stringify(budget)}`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
-      contents: prompt,
-    });
-
-    const text = response.text || '{}';
+    const response = await model.generateContent(prompt);
+    const text = response.response.text() || '{}';
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
     res.json(parsed);

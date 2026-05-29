@@ -4,7 +4,12 @@
  */
 
 import React from 'react';
+import axios from 'axios';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+// Configure Axios
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || '';
+
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ExpenseProvider } from './context/ExpenseContext';

@@ -1,7 +1,7 @@
 import express from 'express';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
-import { generateBudgetInsights } from '../lib/openai';
+import { generateBudgetInsights } from '../lib/openai.js';
 
 dotenv.config();
 
