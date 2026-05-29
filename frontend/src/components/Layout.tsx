@@ -14,7 +14,8 @@ import {
   MessageSquare, 
   Menu, 
   X as CloseIcon,
-  Receipt as ReceiptIcon
+  Receipt as ReceiptIcon,
+  MoreHorizontal
 } from 'lucide-react';
 import { AnimatedBackground } from './AnimatedBackground';
 import { GridHero } from './ui/grid-hero-animated';
@@ -325,24 +326,16 @@ export const Layout = () => {
             )}
           </NavLink>
 
-          {/* Reports in Bottom Nav */}
-          <NavLink
-            to="/dashboard/reports"
-            className={({ isActive }) =>
-              `flex flex-col items-center justify-center w-16 h-full transition-all gap-1.5 ${
-                isActive ? 'text-emerald-500 font-bold' : 'text-slate-400'
-              }`
-            }
+          {/* More Options / Sidebar Toggle */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="flex flex-col items-center justify-center w-16 h-full transition-all gap-1.5 text-slate-400"
           >
-            {({ isActive }) => (
-              <>
-                <div className={`p-2 rounded-xl transition-all ${isActive ? 'bg-emerald-500/10' : ''}`}>
-                  <BarChart2 size={20} />
-                </div>
-                <span className="text-[10px] font-medium">Reports</span>
-              </>
-            )}
-          </NavLink>
+            <div className="p-2 rounded-xl transition-all">
+              <MoreHorizontal size={20} />
+            </div>
+            <span className="text-[10px] font-medium">More</span>
+          </button>
         </nav>
       </div>
     </div>

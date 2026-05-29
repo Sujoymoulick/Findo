@@ -109,26 +109,33 @@ const Navbar = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="md:hidden fixed inset-0 bg-white dark:bg-black z-40 flex flex-col items-center justify-center space-y-12"
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="md:hidden fixed inset-0 bg-white dark:bg-black z-[60] flex flex-col items-center justify-start pt-32 space-y-10 overflow-y-auto pb-12"
           >
-             <button onClick={() => setIsOpen(false)} className="absolute top-8 right-6 text-slate-900 dark:text-white">
+             <button onClick={() => setIsOpen(false)} className="absolute top-8 right-6 text-slate-900 dark:text-white p-2">
               <X size={32} />
             </button>
-            {navLinks.map((link) => (
-              <button 
-                key={link.name} 
-                onClick={() => { scrollToSection(link.id); setIsOpen(false); }}
-                className="text-2xl font-black text-slate-900 dark:text-white tracking-[0.2em]"
+            <div className="flex flex-col items-center space-y-10 w-full px-6">
+              {navLinks.map((link) => (
+                <button 
+                  key={link.name} 
+                  onClick={() => { scrollToSection(link.id); setIsOpen(false); }}
+                  className="text-3xl font-black text-slate-900 dark:text-white tracking-[0.2em] w-full py-4 border-b border-slate-100 dark:border-white/5"
+                >
+                  {link.name}
+                </button>
+              ))}
+              <Link 
+                to="/login" 
+                className="w-full text-center text-sm font-black text-white bg-slate-900 dark:bg-white dark:text-black py-5 rounded-2xl tracking-[0.2em] shadow-xl mt-4"
+                onClick={() => setIsOpen(false)}
               >
-                {link.name}
-              </button>
-            ))}
-            <Link to="/login" className="text-sm font-black text-slate-900 dark:text-white px-12 py-4 rounded-full border border-slate-900 dark:border-white" onClick={() => setIsOpen(false)}>
-              SIGN IN
-            </Link>
+                SIGN IN
+              </Link>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
