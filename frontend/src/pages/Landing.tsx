@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { Menu, X, Search, Moon, Sun, ChevronDown, Shield, BarChart3, Zap, Brain, Mail, MapPin, Phone, Send, ArrowUpRight, Sparkles, Users, TrendingUp, Home, LogIn, Info } from 'lucide-react';
+import { Menu as MenuIcon, X, Search, Moon, Sun, ChevronDown, Shield, BarChart3, Zap, Brain, Mail, MapPin, Phone, Send, ArrowUpRight, Sparkles, Users, TrendingUp, Home, LogIn, Info } from 'lucide-react';
 import { AnimatedBackground } from '../components/AnimatedBackground';
 import { GridHero } from '../components/ui/grid-hero-animated';
 import { MorphingText } from '../components/ui/liquid-text';
@@ -11,7 +11,38 @@ import logoImage from '../../Assets/logo.png';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 
-// ... rest of the file ...
+// Scroll-triggered animation variants
+const fadeInUp = {
+  hidden: { opacity: 0, y: 60 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+};
+
+const fadeInLeft = {
+  hidden: { opacity: 0, x: -60 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+};
+
+const fadeInRight = {
+  hidden: { opacity: 0, x: 60 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+};
+
+const staggerContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.15, delayChildren: 0.1 } }
+};
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }
+};
+
+const scrollToSection = (id: string) => {
+  const element = document.getElementById(id);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
 
 const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
