@@ -1,55 +1,26 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { Menu, X, Search, Moon, Sun, ChevronDown, Shield, BarChart3, Zap, Brain, Mail, MapPin, Phone, Send, ArrowUpRight, Sparkles, Users, TrendingUp } from 'lucide-react';
+import { Menu, X, Search, Moon, Sun, ChevronDown, Shield, BarChart3, Zap, Brain, Mail, MapPin, Phone, Send, ArrowUpRight, Sparkles, Users, TrendingUp, Home, LogIn, Info } from 'lucide-react';
 import { AnimatedBackground } from '../components/AnimatedBackground';
 import { GridHero } from '../components/ui/grid-hero-animated';
 import { MorphingText } from '../components/ui/liquid-text';
 import { TypingReveal } from '../components/ui/typing-reveal';
+import { MenuItem, MenuContainer } from '../components/ui/fluid-menu';
 import logoImage from '../../Assets/logo.png';
 import { useTheme } from '../context/ThemeContext';
+import { useNavigate } from 'react-router-dom';
 
-// Scroll-triggered animation variants
-const fadeInUp = {
-  hidden: { opacity: 0, y: 60 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
-};
-
-const fadeInLeft = {
-  hidden: { opacity: 0, x: -60 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
-};
-
-const fadeInRight = {
-  hidden: { opacity: 0, x: 60 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
-};
-
-const staggerContainer = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.15, delayChildren: 0.1 } }
-};
-
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.8 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }
-};
-
-const scrollToSection = (id: string) => {
-  const element = document.getElementById(id);
-  if (element) {
-    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-};
+// ... rest of the file ...
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = React.useState(false);
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
 
   const navLinks = [
-    { name: 'HOME', id: 'hero' },
-    { name: 'ABOUT US', id: 'about' },
-    { name: 'CONTACT US', id: 'contact' },
+    { name: 'HOME', id: 'hero', icon: <Home size={24} strokeWidth={1.5} /> },
+    { name: 'ABOUT', id: 'about', icon: <Info size={24} strokeWidth={1.5} /> },
+    { name: 'CONTACT', id: 'contact', icon: <Mail size={24} strokeWidth={1.5} /> },
   ];
 
   return (
@@ -95,50 +66,41 @@ const Navbar = () => {
           <div className="md:hidden flex items-center gap-4">
             <button 
               onClick={toggleTheme}
-              className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all"
+              className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all mr-2"
             >
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <button onClick={() => setIsOpen(!isOpen)} className="text-slate-900 dark:text-white">
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+            
+            <div className="relative">
+              <MenuContainer>
+                <MenuItem 
+                  icon={
+                    <div className="relative w-6 h-6">
+                      <div className="absolute inset-0 transition-all duration-300 ease-in-out origin-center opacity-100 scale-100 rotate-0 [div[data-expanded=true]_&]:opacity-0 [div[data-expanded=true]_&]:scale-0 [div[data-expanded=true]_&]:rotate-180">
+                        <MenuIcon size={24} strokeWidth={1.5} className="text-slate-900 dark:text-white" />
+                      </div>
+                      <div className="absolute inset-0 transition-all duration-300 ease-in-out origin-center opacity-0 scale-0 -rotate-180 [div[data-expanded=true]_&]:opacity-100 [div[data-expanded=true]_&]:scale-100 [div[data-expanded=true]_&]:rotate-0">
+                        <X size={24} strokeWidth={1.5} className="text-slate-900 dark:text-white" />
+                      </div>
+                    </div>
+                  } 
+                />
+                {navLinks.map((link) => (
+                  <MenuItem 
+                    key={link.id}
+                    icon={React.cloneElement(link.icon as React.ReactElement, { className: "text-slate-900 dark:text-white" })} 
+                    onClick={() => scrollToSection(link.id)}
+                  />
+                ))}
+                <MenuItem 
+                  icon={<LogIn size={24} strokeWidth={1.5} className="text-blue-500" />} 
+                  onClick={() => navigate('/login')}
+                />
+              </MenuContainer>
+            </div>
           </div>
         </div>
       </div>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div 
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="md:hidden fixed inset-0 bg-white dark:bg-black z-[60] flex flex-col items-center justify-start pt-32 space-y-10 overflow-y-auto pb-12"
-          >
-             <button onClick={() => setIsOpen(false)} className="absolute top-8 right-6 text-slate-900 dark:text-white p-2">
-              <X size={32} />
-            </button>
-            <div className="flex flex-col items-center space-y-10 w-full px-6">
-              {navLinks.map((link) => (
-                <button 
-                  key={link.name} 
-                  onClick={() => { scrollToSection(link.id); setIsOpen(false); }}
-                  className="text-3xl font-black text-slate-900 dark:text-white tracking-[0.2em] w-full py-4 border-b border-slate-100 dark:border-white/5"
-                >
-                  {link.name}
-                </button>
-              ))}
-              <Link 
-                to="/login" 
-                className="w-full text-center text-sm font-black text-white bg-slate-900 dark:bg-white dark:text-black py-5 rounded-2xl tracking-[0.2em] shadow-xl mt-4"
-                onClick={() => setIsOpen(false)}
-              >
-                SIGN IN
-              </Link>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </nav>
   );
 };
