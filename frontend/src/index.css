@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --animate-drift: drift 40s linear infinite;
+  --animate-blob: blob 15s infinite;
+  --animate-mesh: mesh 20s ease-in-out infinite;
+  --animate-pulse-subtle: pulse-subtle 4s ease-in-out infinite;
+  --animate-ripple: ripple 2s ease calc(var(--i, 0) * 0.2s) infinite;
+  --animate-orbit: orbit calc(var(--duration) * 1s) linear infinite;
+  
+  --color-brand-primary: #f59e0b;
+  --color-brand-secondary: #0f172a;
+  --color-mesh-1: #f59e0b;
+  --color-mesh-2: #ea580c;
+  --color-mesh-3: #7c2d12;
+  --color-mesh-4: #451a03;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-skeleton: var(--skeleton);
+  --color-border: var(--btn-border);
+  --color-input: var(--input);
+
+  --shadow-input: 0px 2px 3px -1px rgba(0, 0, 0, 0.1), 0px 1px 0px 0px rgba(25, 28, 33, 0.02), 0px 0px 0px 1px rgba(25, 28, 33, 0.08);
+
+  @keyframes ripple {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(0.9); }
+  }
+
+  @keyframes orbit {
+    0% { transform: rotate(0deg) translateY(calc(var(--radius) * 1px)) rotate(0deg); }
+    100% { transform: rotate(360deg) translateY(calc(var(--radius) * 1px)) rotate(-360deg); }
+  }
+
+  @keyframes mesh {
+    0% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(10%, -10%) scale(1.1); }
+    66% { transform: translate(-10%, 10%) scale(0.9); }
+    100% { transform: translate(0, 0) scale(1); }
+  }
+
+  @keyframes blob {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+  }
+
+  @keyframes pulse-subtle {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.02); }
+  }
+
+  @keyframes gradient-foreground-1 {
+    from, 16.667%, to { opacity: 1; }
+    33.333%, 83.333% { opacity: 0; }
+  }
+
+  @keyframes gradient-foreground-2 {
+    from, to { opacity: 0; }
+    33.333%, 50% { opacity: 1; }
+    16.667%, 66.667% { opacity: 0; }
+  }
+
+  @keyframes gradient-foreground-3 {
+    from, 50%, to { opacity: 0; }
+    66.667%, 83.333% { opacity: 1; }
+  }
+
+  @keyframes gradient-background-1 {
+    from, 16.667%, to { opacity: 0; }
+    25%, 91.667% { opacity: 1; }
+  }
+
+  @keyframes gradient-background-2 {
+    from, to { opacity: 1; }
+    33.333%, 50% { opacity: 0; }
+    25%, 58.333% { opacity: 1; }
+  }
+
+  @keyframes gradient-background-3 {
+    from, 58.333%, 91.667%, to { opacity: 1; }
+    66.667%, 83.333% { opacity: 0; }
+  }
+}
+
+@layer utilities {
+  .animate-pulse-subtle { animation: pulse-subtle 4s ease-in-out infinite; }
+  .animate-mesh { animation: mesh 20s ease-in-out infinite; }
+  .animate-blob { animation: blob 15s ease-in-out infinite; }
+
+  /* TextColor Utilities */
+  .animate-g1-fg { animation: gradient-foreground-1 8s infinite; }
+  .animate-g2-fg { animation: gradient-foreground-2 8s infinite; }
+  .animate-g3-fg { animation: gradient-foreground-3 8s infinite; }
+
+  .before-animate-g1-bg::before { animation: gradient-background-1 8s infinite; content: attr(data-content); }
+  .before-animate-g2-bg::before { animation: gradient-background-2 8s infinite; content: attr(data-content); }
+  .before-animate-g3-bg::before { animation: gradient-background-3 8s infinite; content: attr(data-content); }
+
+  .bg-gradient-g1 { background-image: linear-gradient(to right, #39ff14, #00ffff); }
+  .bg-gradient-g2 { background-image: linear-gradient(to right, #ff073a, #ff6ec7); }
+  .bg-gradient-g3 { background-image: linear-gradient(to right, #faff00, #00f0ff); }
+}
+
+/* Custom transition for theme switching */
+* {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-duration: 500ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@layer base {
+  :root {
+    --background: hsl(0, 0%, 100%);
+    --foreground: hsl(0, 0%, 0%);
+    --skeleton: hsl(0, 0%, 90%);
+    --btn-border: hsl(214deg, 31.8%, 91.4%);
+    --input: hsl(220, 20%, 90%);
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: hsl(222, 94%, 5%);
+    --foreground: hsl(0, 0%, 100%);
+    --skeleton: hsl(218, 36%, 16%);
+    --btn-border: hsl(217deg, 32.6%, 17.5%);
+    --input: hsl(219, 63%, 16%);
+    --radius: 0.5rem;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .g-button {
+    @apply rounded-[var(--radius)] border;
+    border-color: var(--btn-border);
+  }
+}
